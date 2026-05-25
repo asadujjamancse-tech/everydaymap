@@ -1,0 +1,45 @@
+// Tourist density heatmap — higher weight = more tourists
+export const HEATMAP_GEOJSON = {
+    type: 'FeatureCollection' as const,
+    features: [
+        // Europe
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [2.35, 48.86] }, properties: { weight: 1.0, city: 'Paris' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [-0.13, 51.51] }, properties: { weight: 0.92, city: 'London' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [12.50, 41.90] }, properties: { weight: 0.88, city: 'Rome' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [2.17, 41.38] }, properties: { weight: 0.84, city: 'Barcelona' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [4.90, 52.37] }, properties: { weight: 0.80, city: 'Amsterdam' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [25.15, 36.85] }, properties: { weight: 0.85, city: 'Santorini' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [23.73, 37.98] }, properties: { weight: 0.77, city: 'Athens' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [-3.70, 40.42] }, properties: { weight: 0.75, city: 'Madrid' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [14.42, 50.09] }, properties: { weight: 0.72, city: 'Prague' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [13.41, 52.52] }, properties: { weight: 0.70, city: 'Berlin' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [18.09, 42.65] }, properties: { weight: 0.78, city: 'Dubrovnik' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [-9.14, 38.72] }, properties: { weight: 0.73, city: 'Lisbon' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [28.98, 41.01] }, properties: { weight: 0.79, city: 'Istanbul' } },
+        // Asia
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [139.69, 35.69] }, properties: { weight: 0.96, city: 'Tokyo' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [100.50, 13.76] }, properties: { weight: 0.90, city: 'Bangkok' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [103.82, 1.35] }, properties: { weight: 0.88, city: 'Singapore' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [115.09, -8.34] }, properties: { weight: 0.87, city: 'Bali' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [114.15, 22.28] }, properties: { weight: 0.82, city: 'Hong Kong' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [121.47, 31.23] }, properties: { weight: 0.85, city: 'Shanghai' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [126.98, 37.57] }, properties: { weight: 0.81, city: 'Seoul' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [55.27, 25.20] }, properties: { weight: 0.89, city: 'Dubai' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [72.88, 19.08] }, properties: { weight: 0.76, city: 'Mumbai' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [105.83, 21.03] }, properties: { weight: 0.74, city: 'Hanoi' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [98.30, 7.88] }, properties: { weight: 0.82, city: 'Phi Phi' } },
+        // Americas
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [-74.01, 40.71] }, properties: { weight: 0.94, city: 'New York' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [-115.17, 36.12] }, properties: { weight: 0.91, city: 'Las Vegas' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [-43.17, -22.91] }, properties: { weight: 0.83, city: 'Rio' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [-99.13, 19.43] }, properties: { weight: 0.80, city: 'Mexico City' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [-80.14, 25.78] }, properties: { weight: 0.78, city: 'Miami' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [-79.38, 43.65] }, properties: { weight: 0.77, city: 'Toronto' } },
+        // Africa / Oceania
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [151.21, -33.87] }, properties: { weight: 0.79, city: 'Sydney' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [-7.98, 31.63] }, properties: { weight: 0.76, city: 'Marrakech' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [18.42, -33.92] }, properties: { weight: 0.72, city: 'Cape Town' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [36.82, -1.29] }, properties: { weight: 0.68, city: 'Nairobi' } },
+        { type: 'Feature', geometry: { type: 'Point', coordinates: [172.47, -43.73] }, properties: { weight: 0.71, city: 'Queenstown' } },
+    ],
+};
