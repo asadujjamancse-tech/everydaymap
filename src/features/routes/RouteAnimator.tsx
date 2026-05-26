@@ -1,3 +1,10 @@
+/**
+ * RouteAnimator.tsx — Animated Route Playback (renderless)
+ * Watches `isRouteAnimating` and `activeRoute` in the store.
+ * When animation starts, it steps through each route point in order,
+ * calling `mapInstance.flyTo()` to smoothly travel between stops
+ * and updating `routeProgress` (0–1) for the progress bar in RoutePanel.
+ */
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useMapStore } from '../../store/mapStore';
 
@@ -42,8 +49,9 @@ function arcControl(x0: number, y0: number, x1: number, y1: number) {
 export const RouteAnimator: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const rafRef = useRef<number>();
+    const flyTimerRef = useRef<ReturnType<typeof setTimeout>[]>([]);
     const progressRef = useRef(0);
-    const { activeRoute, isRouteAnimating, stopRouteAnimation, setRouteProgress } = useMapStore();
+    const { activeRoute, isRouteAnimating, stopRouteAnimation, setRouteProgress, mapInstance } = useMapStore();
 
     const drawFrame = useCallback((progress: number) => {
         const canvas = canvasRef.current;
@@ -198,26 +206,44 @@ export const RouteAnimator: React.FC = () => {
         if (!isRouteAnimating || !activeRoute) return;
         progressRef.current = 0;
 
-        const duration = 8000; // 8 seconds for full route
-        const start = performance.now();
+        const pts = activeRoute.points;
+        const STOP_DURATION = 5000;  // ms spent at each stop before flying to next
+        const duration = pts.length * STOP_DURATION + 2000;
 
+        // Fly the Leaflet map to each stop sequentially
+        flyTimerRef.current.forEach(clearTimeout);
+        flyTimerRef.current = [];
+        pts.forEach((pt, i) => {
+            const t = setTimeout(() => {
+                const [lng, lat] = pt.coordinates;
+                if (typeof lat === 'number' && typeof lng === 'number') {
+                    (mapInstance as any)?.flyTo([lat, lng], 5, { duration: 2.5, easeLinearity: 0.2 });
+                }
+            }, i * STOP_DURATION);
+            flyTimerRef.current.push(t);
+        });
+
+        // Canvas progress animation
+        const start = performance.now();
         const loop = (now: number) => {
             const elapsed = now - start;
             const progress = Math.min(elapsed / duration, 1);
             progressRef.current = progress;
             setRouteProgress(progress);
             drawFrame(progress);
-
             if (progress < 1) {
                 rafRef.current = requestAnimationFrame(loop);
             } else {
                 stopRouteAnimation();
             }
         };
-
         rafRef.current = requestAnimationFrame(loop);
-        return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-    }, [isRouteAnimating, activeRoute, drawFrame, setRouteProgress, stopRouteAnimation]);
+
+        return () => {
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+            flyTimerRef.current.forEach(clearTimeout);
+        };
+    }, [isRouteAnimating, activeRoute, drawFrame, setRouteProgress, stopRouteAnimation, mapInstance]);
 
     // Resize canvas to fill window
     useEffect(() => {

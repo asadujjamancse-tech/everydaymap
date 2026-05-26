@@ -1,10 +1,27 @@
+/**
+ * utils.ts — Layer Utility Functions
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Shared helpers used by individual layer hooks (useBudgetLayer, etc.).
+ *
+ *   addWhenReady       — safely waits for Mapbox style to load before adding.
+ *                        Returns a no-op for Leaflet maps (not applicable).
+ *   safeRemove         — silently removes Mapbox layers/sources that may not exist.
+ *   popupHTML          — generates consistent dark-themed popup HTML.
+ *   makePopup          — stub for popup API (Mapbox popups not used in Leaflet mode).
+ *   attachHoverPopup   — attaches mouseenter/mouseleave handlers to a Mapbox layer.
+ *
+ * Most layer hooks in this project use Leaflet's DivIcon markers directly
+ * rather than Mapbox layers — so addWhenReady/safeRemove are mainly legacy.
+ */
+
 /// <reference types="vite/client" />
-import mapboxgl from 'mapbox-gl';
 
 export type MapInstance = any;
 
-/** Add layers once the style is fully loaded, and re-add after every style swap. */
+/** Add layers once the style is fully loaded, and re-add after every style swap.
+ *  Returns a no-op when called with a non-Mapbox map instance (e.g. Leaflet). */
 export function addWhenReady(map: MapInstance, fn: () => void): () => void {
+    if (typeof map?.isStyleLoaded !== 'function') return () => {};
     const wrapped = () => {
         try { fn(); } catch (_) {}
     };
@@ -42,9 +59,9 @@ export function popupHTML(
     </div>`;
 }
 
-/** Create a standard Mapbox popup (no close button — hover-style). */
+/** Stub — Mapbox popups removed; layer hooks guard against non-Mapbox maps. */
 export function makePopup(): any {
-    return new (mapboxgl as any).Popup({ closeButton: false, closeOnClick: false, offset: 14 });
+    return { setLngLat: () => ({ setHTML: () => ({ addTo: () => {} }) }), remove: () => {} };
 }
 
 /** Attach hover-popup handlers to a Mapbox layer. */

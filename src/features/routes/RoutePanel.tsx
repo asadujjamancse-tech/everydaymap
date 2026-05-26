@@ -1,4 +1,11 @@
-import React, { useState } from 'react';
+/**
+ * RoutePanel.tsx — Travel Route Detail Side Panel
+ * Slides in from the right when a multi-stop TravelRoute is selected.
+ * Shows the route name, total budget, total days, each stop's details,
+ * and Play/Stop buttons to animate the route progression on the map.
+ * The animation is handled by RouteAnimator.tsx.
+ */
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useMapStore } from '../../store/mapStore';
 
@@ -7,7 +14,6 @@ export const RoutePanel: React.FC = () => {
         isPanelOpen,
         panelContent,
         activeRoute,
-        travelRoutes,
         closePanel,
         startRouteAnimation,
         stopRouteAnimation,
@@ -21,7 +27,7 @@ export const RoutePanel: React.FC = () => {
             initial={{ opacity: 0, x: 400 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 400 }}
-            className="fixed right-0 top-14 bottom-10 w-96 bg-gradient-to-br from-slate-900 to-slate-800 shadow-2xl z-45 overflow-y-auto border-l border-purple-500/20"
+            className="fixed right-0 top-14 bottom-10 w-96 bg-gradient-to-br from-slate-900 to-slate-800 shadow-2xl z-50 overflow-y-auto border-l border-purple-500/20"
         >
             {/* Header */}
             <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 relative">

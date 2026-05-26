@@ -1,3 +1,4 @@
+/* CommandPalette.tsx — Keyboard-driven command palette (⌘K). Search and execute app actions quickly without using the mouse. */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMapStore, MapMode, MapStyle } from '../../store/mapStore';

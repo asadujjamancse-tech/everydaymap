@@ -1,3 +1,4 @@
+/* useHeatmapLayer — Leaflet layer hook for the Heatmap overlay. Adds/removes markers when active=true/false. */
 import { useEffect, useRef } from 'react';
 import { HEATMAP_GEOJSON } from './heatmapData';
 import { addWhenReady, safeRemove } from '../utils';

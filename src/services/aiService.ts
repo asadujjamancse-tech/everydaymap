@@ -1,3 +1,4 @@
+/* aiService.ts — AI API client. Sends messages to the configured AI endpoint and streams responses back to AIAssistant. */
 export interface AIResponse {
     text: string;
     countries: string[];

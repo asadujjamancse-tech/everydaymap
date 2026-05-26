@@ -1,6 +1,14 @@
+/**
+ * AIAssistant.tsx — Floating AI Chat Assistant
+ * A draggable 🤖 button (bottom-right) that opens a chat interface.
+ * Sends user messages to an AI endpoint and streams travel advice responses.
+ * Context-aware: includes the active map mode and selected country in system prompt.
+ * Uses DraggableFloatButton so the user can reposition it anywhere on screen.
+ */
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMapStore } from '../../store/mapStore';
+import { DraggableFloatButton } from '../../components/DraggableFloatButton';
 
 interface Message {
     id: string;
@@ -284,18 +292,16 @@ export const AIAssistant: React.FC = () => {
                 )}
             </AnimatePresence>
 
-            {/* FAB */}
-            <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.93 }}
+            {/* FAB — draggable 3D robot button */}
+            <DraggableFloatButton
+                icon={isOpen ? '✕' : '🤖'}
+                label="AI Travel Navigator"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-xl shadow-purple-500/30 hover:shadow-purple-500/50 transition-all flex items-center justify-center text-2xl relative"
-            >
-                {isOpen ? '✕' : '🤖'}
-                {!isOpen && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-green-400 border-2 border-slate-900 animate-pulse" />
-                )}
-            </motion.button>
+                gradient="linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)"
+                shadowColor="rgba(124,58,237,0.5)"
+                size={64}
+                badge={!isOpen}
+            />
         </div>
     );
 };

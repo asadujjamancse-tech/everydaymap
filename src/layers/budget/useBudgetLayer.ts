@@ -1,3 +1,10 @@
+/**
+ * useBudgetLayer — Cost-of-Living Overlay
+ * Adds colour-coded circles to the map showing daily travel budget ranges
+ * (green = cheap, red = expensive). Labels appear at zoom ≥ 4.
+ * Uses Mapbox layer API — no-ops when the map is a Leaflet instance.
+ * The visual equivalent is rendered by LayerOverlays.tsx for Leaflet.
+ */
 import { useEffect, useRef } from 'react';
 import { BUDGET_GEOJSON } from './budgetData';
 import { addWhenReady, safeRemove, popupHTML, attachHoverPopup } from '../utils';

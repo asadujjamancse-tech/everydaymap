@@ -1,3 +1,4 @@
+/* useVisaLayer — Leaflet layer hook for the Visa overlay. Adds/removes markers when active=true/false. */
 import { useEffect, useRef } from 'react';
 import { VISA_GEOJSON } from './visaData';
 import { addWhenReady, safeRemove, popupHTML, attachHoverPopup } from '../utils';

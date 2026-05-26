@@ -1,3 +1,4 @@
+/* trendingData — Static GeoJSON data for the trending map overlay layer. */
 export const TRENDING_GEOJSON = {
     type: 'FeatureCollection' as const,
     features: [

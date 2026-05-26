@@ -1,3 +1,4 @@
+/* layerConfigs.ts — Display config (name, icon, description) for each of the 13 map overlay layers. Used by the Layer toggle grid in LeftSidebar. */
 export interface LayerConfig {
     id: string;
     name: string;

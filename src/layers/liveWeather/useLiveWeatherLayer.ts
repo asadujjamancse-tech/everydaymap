@@ -1,3 +1,4 @@
+/* useLiveWeatherLayer — Leaflet layer hook for the LiveWeather overlay. Adds/removes markers when active=true/false. */
 import { useEffect, useRef } from 'react';
 import { LIVE_WEATHER_GEOJSON } from './liveWeatherData';
 import { addWhenReady, safeRemove, popupHTML, attachHoverPopup } from '../utils';

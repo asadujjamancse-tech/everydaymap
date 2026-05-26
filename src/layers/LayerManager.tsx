@@ -1,3 +1,22 @@
+/**
+ * LayerManager.tsx — Map Overlay Orchestrator
+ * ─────────────────────────────────────────────────────────────────────────────
+ * A renderless component (returns null) that activates and deactivates all
+ * 13 data overlay layers by calling their individual layer hooks.
+ *
+ * Each layer hook (e.g. useBudgetLayer, useSafetyLayer) receives:
+ *  • `map`    — the Leaflet map instance (or null before the map is ready)
+ *  • `active` — boolean from `activeLayers` in the store
+ *
+ * The hook itself is responsible for adding markers/polygons when active=true
+ * and cleaning them up when active=false or when the component unmounts.
+ *
+ * This approach keeps LayerManager simple — it just wires flags to hooks —
+ * and gives each layer full control over its own Leaflet objects.
+ *
+ * Mounted inside <Map> so it always has access to the Leaflet instance.
+ */
+
 import { useMapStore } from '../store/mapStore';
 import { useBudgetLayer } from './budget/useBudgetLayer';
 import { useSafetyLayer } from './safety/useSafetyLayer';

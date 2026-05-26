@@ -1,3 +1,4 @@
+/* visaData — Static GeoJSON data for the visa map overlay layer. */
 export const VISA_GEOJSON = {
     type: 'FeatureCollection' as const,
     features: [

@@ -1,3 +1,27 @@
+/**
+ * LeftSidebar.tsx — Collapsible Left Navigation Panel
+ * ─────────────────────────────────────────────────────────────────────────────
+ * A spring-animated panel (288px open, 56px collapsed icon rail) anchored to
+ * the left edge, below the TopBar and above the BottomBar.
+ *
+ * Two states:
+ *  • Collapsed (56px) — shows a vertical icon rail with a button per mode.
+ *    Clicking any mode button expands the sidebar and switches mode.
+ *  • Expanded (288px) — shows a header with the current mode name,
+ *    a scrollable content area (renderModeContent), and a fixed footer with
+ *    the Map Layers toggle grid + Points of Interest toggle.
+ *
+ * Mode panels are lazy-rendered via renderModeContent():
+ *   globe → GlobePanel (world reset + map style picker)
+ *   navigation → NavigationMode
+ *   adventure → AdventureMode
+ *   analytics → AnalyticsMode
+ *   immersive → ImmersiveMode
+ *   intelligence → TravelIntelligenceMode
+ *   crowd → CrowdMode
+ *   satellite / offline → simple inline info panels
+ */
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMapStore, MapMode, MapStyle } from '../../store/mapStore';
@@ -80,19 +104,51 @@ const OfflinePanel: React.FC = () => (
 );
 
 const GlobePanel: React.FC = () => {
-    const { toggleGlobeMode, isGlobeMode } = useMapStore();
+    const { mapInstance, setMapStyle, mapStyle } = useMapStore();
+
+    const flyToWorld = () => mapInstance?.flyTo([20, 0], 3, { duration: 1.5 });
+
+    const styles: { id: any; label: string; emoji: string }[] = [
+        { id: 'dark',       label: 'Dark',       emoji: '🌑' },
+        { id: 'standard',   label: 'Streets',    emoji: '🗺️' },
+        { id: 'satellite',  label: 'Satellite',  emoji: '🛰️' },
+        { id: 'terrain',    label: 'Terrain',    emoji: '⛰️' },
+        { id: 'navigation', label: 'Navigation', emoji: '🚗' },
+    ];
+
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-3">
             <div className="bg-slate-800/60 rounded-2xl border border-white/[0.06] p-4 space-y-3">
-                <p className="text-white font-semibold text-sm">🌍 Cinematic Globe</p>
-                <p className="text-slate-400 text-xs leading-relaxed">Explore the 3D Earth. Double-click any location to dive in to the map.</p>
+                <p className="text-white font-semibold text-sm">🌍 World Explorer</p>
+                <p className="text-slate-400 text-xs leading-relaxed">Interactive world map. Toggle layers below to explore travel data globally.</p>
                 <motion.button
                     whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                    onClick={() => toggleGlobeMode(!isGlobeMode)}
+                    onClick={flyToWorld}
                     className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold text-sm"
                 >
-                    {isGlobeMode ? '🗺️ Switch to Map' : '🌍 Switch to Globe'}
+                    🌍 Reset to World View
                 </motion.button>
+            </div>
+            <div className="bg-slate-800/60 rounded-2xl border border-white/[0.06] p-3 space-y-2">
+                <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Map Style</p>
+                <div className="grid grid-cols-1 gap-1.5">
+                    {styles.map((s) => (
+                        <motion.button
+                            key={s.id}
+                            whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
+                            onClick={() => setMapStyle(s.id)}
+                            className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all border ${
+                                mapStyle === s.id
+                                    ? 'bg-gradient-to-r from-purple-600/30 to-blue-600/20 text-white border-purple-500/40'
+                                    : 'bg-slate-800/50 text-slate-400 border-white/[0.06] hover:text-white hover:border-purple-500/20'
+                            }`}
+                        >
+                            <span className="text-base">{s.emoji}</span>
+                            <span>{s.label}</span>
+                            {mapStyle === s.id && <span className="ml-auto text-purple-400 text-[10px]">Active</span>}
+                        </motion.button>
+                    ))}
+                </div>
             </div>
         </motion.div>
     );

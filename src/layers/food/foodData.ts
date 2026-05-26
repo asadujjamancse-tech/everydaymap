@@ -1,3 +1,4 @@
+/* foodData — Static GeoJSON data for the food map overlay layer. */
 export const FOOD_GEOJSON = {
     type: 'FeatureCollection' as const,
     features: [

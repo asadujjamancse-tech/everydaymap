@@ -1,6 +1,17 @@
+/**
+ * ImmersiveMode.tsx — Immersive / Street-Level Explorer Panel
+ * Provides an embedded street-level view (Google Street View iframe or similar).
+ * Users can search for a location and instantly explore it at street level.
+ * Falls back to a satellite imagery panel when no location is selected.
+ */
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMapStore } from '../../store/mapStore';
+
+// Total time per gem: FLY_DURATION seconds fly-in + DWELL_MS ms enjoying the view
+const FLY_DURATION = 4;      // seconds — slow cinematic fly
+const DWELL_MS    = 14000;   // ms — time to sit and appreciate after landing
+const INTERVAL_MS = FLY_DURATION * 1000 + DWELL_MS; // ~18 s total per stop
 
 interface HiddenGem {
     name: string;
@@ -33,23 +44,20 @@ export const ImmersiveMode: React.FC = () => {
     const [isExploring, setIsExploring] = useState(false);
     const [currentGem, setCurrentGem] = useState<HiddenGem | null>(null);
     const [gemIndex, setGemIndex] = useState(0);
+    const [countdown, setCountdown] = useState(0); // 0–100 progress to next gem
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const particleRef = useRef<number>();
     const intervalRef = useRef<ReturnType<typeof setInterval>>();
-    const { mapInstance, toggleGlobeMode } = useMapStore();
+    const countdownRef = useRef<ReturnType<typeof setInterval>>();
+    const { mapInstance } = useMapStore();
 
     const flyToGem = useCallback((gem: HiddenGem) => {
         setCurrentGem(gem);
-        toggleGlobeMode(false);
-        mapInstance?.flyTo({
-            center: gem.coords,
-            zoom: gem.zoom,
-            pitch: gem.pitch,
-            bearing: gem.bearing,
-            duration: 3500,
-            essential: true,
-        });
-    }, [mapInstance, toggleGlobeMode]);
+        setCountdown(0);
+        // Leaflet flyTo: coords stored as [lng, lat], Leaflet needs [lat, lng]
+        const [lng, lat] = gem.coords;
+        (mapInstance as any)?.flyTo([lat, lng], gem.zoom, { duration: FLY_DURATION, easeLinearity: 0.2 });
+    }, [mapInstance]);
 
     // Cinematic particle canvas
     useEffect(() => {
@@ -93,28 +101,42 @@ export const ImmersiveMode: React.FC = () => {
         return () => { if (particleRef.current) cancelAnimationFrame(particleRef.current); };
     }, [isExploring]);
 
-    // Auto-tour
+    // Auto-tour: advance gem every INTERVAL_MS, animate countdown bar in between
     useEffect(() => {
         if (!isExploring) return;
-        const first = HIDDEN_GEMS[0];
         setGemIndex(0);
-        flyToGem(first);
+        flyToGem(HIDDEN_GEMS[0]);
 
+        // Advance to next gem
         intervalRef.current = setInterval(() => {
             setGemIndex((prev) => {
                 const next = (prev + 1) % HIDDEN_GEMS.length;
                 flyToGem(HIDDEN_GEMS[next]);
                 return next;
             });
-        }, 7000);
+        }, INTERVAL_MS);
 
-        return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+        // Smooth countdown bar — updates every 150 ms
+        const tickMs = 150;
+        countdownRef.current = setInterval(() => {
+            setCountdown((c) => {
+                const next = c + (tickMs / INTERVAL_MS) * 100;
+                return next >= 100 ? 0 : next;
+            });
+        }, tickMs);
+
+        return () => {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+            if (countdownRef.current) clearInterval(countdownRef.current);
+        };
     }, [isExploring, flyToGem]);
 
     const stopExploring = () => {
         setIsExploring(false);
         setCurrentGem(null);
+        setCountdown(0);
         if (intervalRef.current) clearInterval(intervalRef.current);
+        if (countdownRef.current) clearInterval(countdownRef.current);
     };
 
     const surpriseMe = () => {
@@ -168,7 +190,7 @@ export const ImmersiveMode: React.FC = () => {
                             </>
                         ) : (
                             <>
-                                {/* Progress indicator */}
+                                {/* Gem dots */}
                                 <div className="flex gap-1.5 flex-wrap">
                                     {HIDDEN_GEMS.map((_, i) => (
                                         <motion.div
@@ -180,6 +202,21 @@ export const ImmersiveMode: React.FC = () => {
                                         />
                                     ))}
                                 </div>
+
+                                {/* Countdown bar */}
+                                <div className="space-y-1">
+                                    <div className="flex justify-between text-[10px] text-slate-500">
+                                        <span>Next location in…</span>
+                                        <span>{Math.max(0, Math.ceil((INTERVAL_MS * (1 - countdown / 100)) / 1000))}s</span>
+                                    </div>
+                                    <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-gradient-to-r from-violet-500 to-pink-500 rounded-full transition-all"
+                                            style={{ width: `${countdown}%`, transitionDuration: '150ms' }}
+                                        />
+                                    </div>
+                                </div>
+
                                 <motion.button
                                     whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                                     onClick={stopExploring}

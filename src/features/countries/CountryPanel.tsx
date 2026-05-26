@@ -1,3 +1,10 @@
+/**
+ * CountryPanel.tsx — Country Detail Side Panel
+ * Slides in from the right when a country is selected (from search or map click).
+ * Shows: flag, population, capital, currency, language, safety score,
+ * average budget, best season to visit, top attractions, and visa info.
+ * Data is looked up from a static country database by name.
+ */
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMapStore } from '../../store/mapStore';
@@ -128,7 +135,7 @@ export const CountryPanel: React.FC = () => {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 420 }}
                     transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                    className="fixed right-0 top-14 bottom-10 w-96 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 shadow-2xl z-45 overflow-y-auto border-l border-purple-500/20 scrollbar-thin scrollbar-thumb-purple-800"
+                    className="fixed right-0 top-14 bottom-10 w-96 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 shadow-2xl z-50 overflow-y-auto border-l border-purple-500/20 scrollbar-thin scrollbar-thumb-purple-800"
                 >
                     {/* Header */}
                     <div className="bg-gradient-to-r from-purple-700 to-blue-700 p-6 relative overflow-hidden">

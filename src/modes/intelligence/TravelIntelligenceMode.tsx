@@ -1,3 +1,10 @@
+/**
+ * TravelIntelligenceMode.tsx — AI Travel Intelligence Sidebar Panel
+ * The ✈️ Intelligence mode panel shown in the left sidebar.
+ * Displays AI-generated travel tips, country insights, budget recommendations,
+ * and best-time-to-visit guidance based on the currently selected country.
+ * Reads `selectedCountry` and `aiContext` from the store.
+ */
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMapStore } from '../../store/mapStore';

@@ -1,3 +1,18 @@
+/**
+ * BottomBar.tsx — Status Bar (fixed bottom strip)
+ * ─────────────────────────────────────────────────────────────────────────────
+ * A thin 40px bar at the very bottom of the screen showing:
+ *
+ *  [🌍 Globe | 🗺️ Map]  |  LAT … LNG … Z …  |  [spacer]  |  [mode badge]  |
+ *  |  [map style pills]  |  [🏙️ 3D toggle]
+ *
+ * Map style pills and 3D toggle are hidden when globe mode is active
+ * (they only apply to the Leaflet map).
+ *
+ * Coordinates update live via the `mousemove` handler in MapController
+ * (LeafletMap.tsx), which writes to `currentCoords` in the store.
+ */
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useMapStore, MapStyle } from '../../store/mapStore';

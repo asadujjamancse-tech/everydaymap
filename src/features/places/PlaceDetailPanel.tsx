@@ -1,3 +1,10 @@
+/**
+ * PlaceDetailPanel.tsx — Search Result Detail Card
+ * A slide-in panel (bottom of screen) shown when the user selects a geocoded
+ * place from the TopBar search dropdown. Displays the place name, coordinates,
+ * type, and quick actions: "Fly Here", "Save", "Get Directions".
+ * Dismissed by clicking the ✕ button or selecting another place.
+ */
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMapStore } from '../../store/mapStore';
@@ -49,36 +56,28 @@ interface PlaceDetailPanelProps {
 export const PlaceDetailPanel: React.FC<PlaceDetailPanelProps> = ({ place, onClose }) => {
     const [tab, setTab] = useState<'overview' | 'intel' | 'explore'>('overview');
     const [isExpanded, setIsExpanded] = useState(true);
-    const { mapInstance, toggleGlobeMode, setActiveMode, setMapStyle } = useMapStore();
+    const { mapInstance, setActiveMode, setMapStyle } = useMapStore();
 
     const intel = getIntel(place);
 
+    // Leaflet flyTo: map.flyTo([lat, lng], zoom, options)
     const flyToPlace = () => {
-        toggleGlobeMode(false);
-        setTimeout(() => {
-            mapInstance?.flyTo({
-                center: place.coords,
-                zoom: place.zoom,
-                pitch: place.zoom > 12 ? 55 : 35,
-                duration: 2000,
-                essential: true,
-            });
-        }, 200);
+        const [lng, lat] = place.coords;
+        mapInstance?.flyTo([lat, lng], place.zoom ?? 11, { duration: 2, easeLinearity: 0.25 });
     };
 
-    useEffect(() => { flyToPlace(); }, []);
+    useEffect(() => { flyToPlace(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleNavigateTo = () => {
-        toggleGlobeMode(false);
         setActiveMode('navigation');
         setMapStyle('navigation');
     };
 
     const handleSatellite = () => {
-        toggleGlobeMode(false);
         setActiveMode('satellite');
         setMapStyle('satellite');
-        mapInstance?.flyTo({ center: place.coords, zoom: Math.max(place.zoom, 12), pitch: 45, duration: 1500 });
+        const [lng, lat] = place.coords;
+        mapInstance?.flyTo([lat, lng], Math.max(place.zoom ?? 11, 12), { duration: 1.5 });
     };
 
     const TABS = [
@@ -240,9 +239,9 @@ export const PlaceDetailPanel: React.FC<PlaceDetailPanelProps> = ({ place, onClo
                                         <p className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold mb-2">Quick Actions</p>
                                         {[
                                             { icon: '🛰️', label: 'Satellite View', desc: 'Aerial imagery of this location', action: handleSatellite },
-                                            { icon: '🏙️', label: '3D City View', desc: 'Fly in with 3D buildings', action: () => { toggleGlobeMode(false); mapInstance?.flyTo({ center: place.coords, zoom: Math.max(place.zoom, 14), pitch: 65, bearing: 30, duration: 2200 }); } },
+                                            { icon: '🏙️', label: 'Close-Up View', desc: 'Fly in close to this location', action: () => { const [lng, lat] = place.coords; mapInstance?.flyTo([lat, lng], Math.max(place.zoom ?? 11, 14), { duration: 2 }); } },
                                             { icon: '🚗', label: 'Navigate Here', desc: 'Get driving directions', action: handleNavigateTo },
-                                            { icon: '🌍', label: 'Back to Globe', desc: 'Return to cinematic globe', action: () => { toggleGlobeMode(true); setActiveMode('globe'); setMapStyle('dark'); } },
+                                            { icon: '🗺️', label: 'Zoom Out', desc: 'Return to world overview', action: () => { mapInstance?.flyTo([20, 0], 3, { duration: 1.5 }); setActiveMode('globe'); setMapStyle('dark'); } },
                                         ].map(({ icon, label, desc, action }) => (
                                             <motion.button
                                                 key={label}

@@ -1,3 +1,4 @@
+/* poiData — Static GeoJSON data for the poi map overlay layer. */
 export type POICategory = 'restaurant' | 'hotel' | 'museum' | 'airport' | 'park' | 'shopping' | 'landmark';
 
 export interface POIItem {

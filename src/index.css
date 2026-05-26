@@ -26,16 +26,56 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-.mapboxgl-canvas {
-    outline: none;
+/* ── Leaflet dark popup theme ─────────────────────────────── */
+.leaflet-dark-popup .leaflet-popup-content-wrapper {
+    background: rgba(15, 23, 42, 0.97);
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    color: #f1f5f9;
+    border-radius: 14px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(139, 92, 246, 0.1);
+    padding: 0;
 }
 
-.mapboxgl-popup-content {
-    background: rgba(15, 23, 42, 0.95);
-    border: 1px solid rgba(139, 92, 246, 0.3);
-    color: #fff;
-    border-radius: 12px;
-    padding: 12px;
+.leaflet-dark-popup .leaflet-popup-content {
+    margin: 14px 16px;
+}
+
+.leaflet-dark-popup .leaflet-popup-tip {
+    background: rgba(15, 23, 42, 0.97);
+}
+
+.leaflet-dark-popup .leaflet-popup-close-button {
+    color: #64748b;
+    font-size: 18px;
+    top: 6px;
+    right: 8px;
+}
+
+.leaflet-dark-popup .leaflet-popup-close-button:hover {
+    color: #f1f5f9;
+    background: transparent;
+}
+
+/* Attribution — keep it subtle */
+.leaflet-control-attribution {
+    background: rgba(2, 6, 23, 0.7) !important;
+    color: #475569 !important;
+    font-size: 9px !important;
+    border-radius: 4px 0 0 0 !important;
+}
+
+.leaflet-control-attribution a {
+    color: #6366f1 !important;
+}
+
+/* Leaflet tile pane sits behind everything */
+.leaflet-pane {
+    z-index: 1 !important;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+    z-index: 5 !important;
 }
 
 ::-webkit-scrollbar {
@@ -69,13 +109,59 @@ body {
 }
 
 @keyframes pulse-slow {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
+}
 
-    0%,
-    100% {
-        opacity: 1;
-    }
+/* ── Travel destination pin pulse animation ──────────────── */
+@keyframes destPulse {
+    0%, 100% { transform: scale(1);    opacity: 0.6; }
+    50%       { transform: scale(1.55); opacity: 0; }
+}
 
-    50% {
-        opacity: 0.5;
-    }
+/* ── Destination popup — no padding, no arrow ────────────── */
+.dest-popup .leaflet-popup-content-wrapper {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8) !important;
+    border-radius: 16px !important;
+    padding: 0 !important;
+}
+.dest-popup .leaflet-popup-content {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.dest-popup .leaflet-popup-tip-container {
+    display: none;
+}
+
+/* ── Marker hover scale transition ───────────────────────── */
+.leaflet-marker-icon {
+    transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), filter 0.18s ease;
+}
+.leaflet-marker-icon:hover {
+    transform: scale(1.18) translateY(-3px);
+    filter: brightness(1.2);
+    z-index: 1000 !important;
+}
+
+/* ── Smooth tile fade-in ─────────────────────────────────── */
+.leaflet-tile {
+    transition: opacity 0.25s ease !important;
+}
+
+/* ── Map container always fills its parent ───────────────── */
+.leaflet-container {
+    width: 100% !important;
+    height: 100% !important;
+    background: #020617 !important;
+}
+
+/* ── Popup open animation ────────────────────────────────── */
+.leaflet-popup {
+    animation: popupFadeIn 0.22s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes popupFadeIn {
+    from { opacity: 0; transform: translateY(10px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0)    scale(1); }
 }

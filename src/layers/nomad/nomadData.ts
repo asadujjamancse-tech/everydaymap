@@ -1,3 +1,4 @@
+/* nomadData — Static GeoJSON data for the nomad map overlay layer. */
 export const NOMAD_GEOJSON = {
     type: 'FeatureCollection' as const,
     features: [

@@ -1,3 +1,4 @@
+/* useAdventureLayer — Leaflet layer hook for the Adventure overlay. Adds/removes markers when active=true/false. */
 import { useEffect, useRef } from 'react';
 import { ADVENTURE_GEOJSON } from './adventureData';
 import { addWhenReady, safeRemove, popupHTML, attachHoverPopup } from '../utils';

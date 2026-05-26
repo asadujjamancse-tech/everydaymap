@@ -1,3 +1,4 @@
+/* beachData — Static GeoJSON data for the beach map overlay layer. */
 export const BEACH_GEOJSON = {
     type: 'FeatureCollection' as const,
     features: [

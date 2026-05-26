@@ -1,3 +1,4 @@
+/* adventureData — Static GeoJSON data for the adventure map overlay layer. */
 export const ADVENTURE_GEOJSON = {
     type: 'FeatureCollection' as const,
     features: [

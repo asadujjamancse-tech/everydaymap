@@ -1,3 +1,4 @@
+/* useNightlifeLayer — Leaflet layer hook for the Nightlife overlay. Adds/removes markers when active=true/false. */
 import { useEffect, useRef } from 'react';
 import { NIGHTLIFE_GEOJSON } from './nightlifeData';
 import { addWhenReady, safeRemove, popupHTML, attachHoverPopup } from '../utils';

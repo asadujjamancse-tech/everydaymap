@@ -1,3 +1,4 @@
+/* useTrendingLayer — Leaflet layer hook for the Trending overlay. Adds/removes markers when active=true/false. */
 import { useEffect, useRef } from 'react';
 import { TRENDING_GEOJSON } from './trendingData';
 import { addWhenReady, safeRemove, popupHTML, attachHoverPopup } from '../utils';

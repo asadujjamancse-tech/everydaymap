@@ -1,3 +1,4 @@
+/* useBeachLayer — Leaflet layer hook for the Beach overlay. Adds/removes markers when active=true/false. */
 import { useEffect, useRef } from 'react';
 import { BEACH_GEOJSON } from './beachData';
 import { addWhenReady, safeRemove, popupHTML, attachHoverPopup } from '../utils';

@@ -1,7 +1,7 @@
+/* useRoutesLayer — Leaflet layer hook for the Routes overlay. Adds/removes markers when active=true/false. */
 import { useEffect, useRef } from 'react';
 import { ROUTES_GEOJSON } from './routesData';
 import { addWhenReady, safeRemove } from '../utils';
-import mapboxgl from 'mapbox-gl';
 
 const SRC = 'routes-src';
 const LINES = 'routes-lines';
@@ -54,7 +54,7 @@ export function useRoutesLayer(map: any, active: boolean) {
             });
 
             // Hover popup on lines
-            const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false });
+            const popup = { setLngLat: () => popup, setHTML: () => popup, addTo: () => popup, remove: () => {} } as any;
 
             const onMouseEnter = (e: any) => {
                 map.getCanvas().style.cursor = 'pointer';

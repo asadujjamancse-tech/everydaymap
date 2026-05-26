@@ -1,3 +1,4 @@
+/* useNomadLayer — Leaflet layer hook for the Nomad overlay. Adds/removes markers when active=true/false. */
 import { useEffect, useRef } from 'react';
 import { NOMAD_GEOJSON } from './nomadData';
 import { addWhenReady, safeRemove, popupHTML, attachHoverPopup } from '../utils';

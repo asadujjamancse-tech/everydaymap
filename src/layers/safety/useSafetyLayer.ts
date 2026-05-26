@@ -1,3 +1,4 @@
+/* useSafetyLayer — Leaflet layer hook for the Safety overlay. Adds/removes markers when active=true/false. */
 import { useEffect, useRef } from 'react';
 import { SAFETY_GEOJSON } from './safetyData';
 import { addWhenReady, safeRemove, popupHTML, attachHoverPopup } from '../utils';

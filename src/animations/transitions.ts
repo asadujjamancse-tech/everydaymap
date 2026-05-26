@@ -1,3 +1,21 @@
+/**
+ * transitions.ts — Shared Framer Motion Variants
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Reusable animation presets imported by panels and cards across the app.
+ * Using shared variants keeps animation timing consistent without copy-pasting.
+ *
+ *   containerVariants  — staggered fade-in for lists of children (0.1s apart)
+ *   itemVariants       — slide-up + fade used for each list item
+ *   floatingVariants   — gentle vertical bob (4s loop, used for icons)
+ *   glowVariants       — purple glow pulse (3s loop, used for active elements)
+ *   pulseVariants      — scale pulse (2s loop, used for live indicators)
+ *
+ * Usage:
+ *   <motion.ul variants={containerVariants} initial="hidden" animate="visible">
+ *     <motion.li variants={itemVariants}>...</motion.li>
+ *   </motion.ul>
+ */
+
 import { motion } from 'framer-motion';
 
 export const containerVariants = {

@@ -1,3 +1,4 @@
+/* useFoodLayer — Leaflet layer hook for the Food overlay. Adds/removes markers when active=true/false. */
 import { useEffect, useRef } from 'react';
 import { FOOD_GEOJSON } from './foodData';
 import { addWhenReady, safeRemove, popupHTML, attachHoverPopup } from '../utils';

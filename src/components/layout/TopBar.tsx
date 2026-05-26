@@ -1,3 +1,26 @@
+/**
+ * TopBar.tsx — Fixed Header / Navigation Bar
+ * ─────────────────────────────────────────────────────────────────────────────
+ * The persistent bar at the top of the screen. Contains:
+ *
+ *   [☰ Logo] [🔍 Search input ▾ dropdown] [mode pills…] [⌘K] [⚙️]
+ *
+ * Key responsibilities:
+ *  1. Smart search box — debounces input (250ms), calls Mapbox Geocoding API
+ *     (or falls back to Nominatim/OSM). Shows a dropdown with live results
+ *     or popular destination suggestions. Supports keyboard navigation
+ *     (↑↓ arrows, Enter, Escape).
+ *
+ *  2. Globe/Map aware — when `isGlobeMode` is true, selecting a result calls
+ *     `setSelectedPlace` so Globe3D can animate to the location. When false,
+ *     the Leaflet map calls `flyTo()` directly.
+ *
+ *  3. Mode pills — clicking a mode pill switches `activeMode` in the store,
+ *     which activates the corresponding sidebar panel and map style.
+ *
+ *  4. Command palette shortcut — ⌘K opens the CommandPalette overlay.
+ */
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMapStore, MapMode, MapStyle } from '../../store/mapStore';
@@ -60,7 +83,7 @@ export const TopBar: React.FC<TopBarProps> = ({ sidebarOpen, onSidebarToggle, on
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hasToken = !!import.meta.env.VITE_MAPBOX_TOKEN;
 
-    const { activeMode, setActiveMode, setMapStyle, toggleGlobeMode, mapInstance, setSelectedCountry, openPanel, setSelectedPlace } = useMapStore();
+    const { activeMode, setActiveMode, setMapStyle, mapInstance, setSelectedCountry, openPanel, setSelectedPlace, isGlobeMode } = useMapStore();
 
     // ── Geocoding debounce ───────────────────────────────────────────────────
     useEffect(() => {
@@ -100,40 +123,45 @@ export const TopBar: React.FC<TopBarProps> = ({ sidebarOpen, onSidebarToggle, on
         setShowDropdown(false);
         setFocused(false);
         inputRef.current?.blur();
-        toggleGlobeMode(false);
         setSelectedPlace(place);
-        setTimeout(() => {
-            mapInstance?.flyTo({
-                center: place.coords,
-                zoom: place.zoom,
-                duration: 2200,
-                pitch: place.zoom > 12 ? 55 : place.zoom > 8 ? 40 : 25,
-                essential: true,
-            });
-        }, 350);
-        if (place.type === 'country' || place.type === 'place' || place.type === 'region') {
-            setSelectedCountry(place.name);
-            openPanel('country');
+        if (!isGlobeMode) {
+            // Only flyTo on Leaflet map when not in globe mode
+            const [lng, lat] = place.coords;
+            mapInstance?.flyTo([lat, lng], place.zoom, { duration: 2, easeLinearity: 0.25 });
+            if (place.type === 'country' || place.type === 'place' || place.type === 'region' || place.type === 'city') {
+                setSelectedCountry(place.name);
+                openPanel('country');
+            }
         }
-    }, [mapInstance, toggleGlobeMode, setSelectedCountry, openPanel, setSelectedPlace]);
+        // In globe mode: Globe3D picks up selectedPlace and shows the overlay card
+    }, [isGlobeMode, mapInstance, setSelectedCountry, openPanel, setSelectedPlace]);
 
     const handleFallbackSelect = useCallback((s: typeof FALLBACK[0]) => {
         setQuery(s.name);
         setShowDropdown(false);
         setFocused(false);
         inputRef.current?.blur();
-        toggleGlobeMode(false);
-        setTimeout(() => {
-            mapInstance?.flyTo({ center: s.coords, zoom: s.zoom, duration: 2200, pitch: s.zoom > 10 ? 55 : 30, essential: true });
-        }, 350);
-        setSelectedCountry(s.name);
-        openPanel('country');
-    }, [mapInstance, toggleGlobeMode, setSelectedCountry, openPanel]);
+        if (!isGlobeMode) {
+            mapInstance?.flyTo([s.coords[1], s.coords[0]], s.zoom, { duration: 2, easeLinearity: 0.25 });
+            setSelectedCountry(s.name);
+            openPanel('country');
+        } else {
+            // In globe mode: create a minimal GeoPlace and show overlay
+            setSelectedPlace({
+                id: s.name,
+                name: s.name,
+                fullName: `${s.name}, ${s.country}`,
+                country: s.country,
+                type: 'place',
+                coords: s.coords,
+                zoom: s.zoom,
+            } as GeoPlace);
+        }
+    }, [isGlobeMode, mapInstance, setSelectedCountry, openPanel, setSelectedPlace]);
 
     const handleMode = (cfg: ModeCfg) => {
         setActiveMode(cfg.id);
         setMapStyle(cfg.style);
-        toggleGlobeMode(cfg.globe);
     };
 
     // Keyboard navigation
@@ -239,11 +267,11 @@ export const TopBar: React.FC<TopBarProps> = ({ sidebarOpen, onSidebarToggle, on
                             {/* Header label */}
                             <div className="px-4 pt-2.5 pb-1 flex items-center justify-between">
                                 <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider">
-                                    {showGeoResults ? `${results.length} results` : isSearching ? 'Searching…' : 'Popular Destinations'}
+                                    {isSearching ? 'Searching…' : results.length > 0 ? `${results.length} results` : 'Popular Destinations'}
                                 </p>
-                                {hasToken && (
-                                    <p className="text-slate-700 text-[9px]">Powered by Mapbox</p>
-                                )}
+                                <p className="text-slate-700 text-[9px]">
+                                    {hasToken ? 'Mapbox' : 'OpenStreetMap'}
+                                </p>
                             </div>
 
                             {/* Loading shimmer */}
@@ -317,11 +345,11 @@ export const TopBar: React.FC<TopBarProps> = ({ sidebarOpen, onSidebarToggle, on
                                 </div>
                             )}
 
-                            {/* Mapbox geocoding hint when token missing */}
-                            {!hasToken && query.length > 0 && (
-                                <div className="px-4 py-2 border-t border-white/[0.05]">
-                                    <p className="text-slate-600 text-[10px]">
-                                        Add <code className="text-slate-500">VITE_MAPBOX_TOKEN</code> for live geocoding search
+                            {/* Search powered by Nominatim when no Mapbox token */}
+                            {!hasToken && results.length > 0 && (
+                                <div className="px-4 py-1.5 border-t border-white/[0.04]">
+                                    <p className="text-slate-700 text-[9px]">
+                                        © OpenStreetMap contributors — Nominatim
                                     </p>
                                 </div>
                             )}

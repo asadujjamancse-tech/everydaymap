@@ -1,3 +1,9 @@
+/**
+ * AdventureMode.tsx — Adventure & Hiking Sidebar Panel
+ * Shows trail cards with difficulty, elevation, and distance for outdoor activities.
+ * Includes an elevation profile chart (Recharts AreaChart) for each selected trail.
+ * Clicking a trail flies the Leaflet map to that location.
+ */
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';

@@ -1,12 +1,77 @@
+/**
+ * NavigationMode.tsx — Turn-by-Turn Navigation Sidebar Panel
+ * Lets the user enter an origin + destination and travel mode (driving/walking/cycling).
+ * Calls the free OSRM routing API to get a route, stores it in `navigationRoute`,
+ * and the RouteLayer in LeafletMap.tsx draws the purple polyline on the map.
+ * Shows step-by-step instructions, distance, and ETA.
+ */
 /// <reference types="vite/client" />
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import mapboxgl from 'mapbox-gl';
 import { useMapStore, NavigationRoute, NavStep } from '../../store/mapStore';
 import { searchPlaces, GeoPlace } from '../../services/geocodingService';
 
 const TRANSPORT_ICONS: Record<string, string> = { driving: '🚗', walking: '🚶', cycling: '🚴' };
 const TRANSPORT_LABELS: Record<string, string> = { driving: 'Drive', walking: 'Walk', cycling: 'Cycle' };
+
+// OSRM profile names
+const OSRM_PROFILE: Record<string, string> = { driving: 'driving', walking: 'walking', cycling: 'cycling' };
+
+// Build a human-readable instruction from OSRM step data
+function osrmInstruction(step: any): string {
+    const type: string = step.maneuver?.type ?? '';
+    const modifier: string = step.maneuver?.modifier ?? '';
+    const name: string = step.name ? `onto ${step.name}` : '';
+    if (type === 'depart') return `Depart${name ? ' ' + name : ''}`;
+    if (type === 'arrive') return 'Arrive at destination';
+    if (type === 'turn') return `Turn ${modifier}${name ? ' ' + name : ''}`;
+    if (type === 'new name') return `Continue${name ? ' ' + name : ''}`;
+    if (type === 'merge') return `Merge ${modifier}${name ? ' ' + name : ''}`;
+    if (type === 'on ramp') return `Take the ramp ${modifier}${name ? ' ' + name : ''}`;
+    if (type === 'off ramp') return `Take the exit ${modifier}${name ? ' ' + name : ''}`;
+    if (type === 'fork') return `Keep ${modifier} at fork${name ? ' ' + name : ''}`;
+    if (type === 'end of road') return `Turn ${modifier} at end of road${name ? ' ' + name : ''}`;
+    if (type === 'roundabout' || type === 'rotary') {
+        const exit = step.maneuver?.exit ? `, take exit ${step.maneuver.exit}` : '';
+        return `Enter roundabout${exit}${name ? ' ' + name : ''}`;
+    }
+    return `Continue${name ? ' ' + name : ''}`;
+}
+
+// Fetch real road route from OSRM (free, no API key, OpenStreetMap road network)
+async function fetchOSRMRoute(
+    oCoords: [number, number],
+    dCoords: [number, number],
+    mode: string
+): Promise<NavigationRoute | null> {
+    try {
+        const profile = OSRM_PROFILE[mode] ?? 'driving';
+        const url = `https://router.project-osrm.org/route/v1/${profile}/${oCoords[0]},${oCoords[1]};${dCoords[0]},${dCoords[1]}?steps=true&geometries=geojson&overview=full`;
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (data.code !== 'Ok' || !data.routes?.[0]) return null;
+        const r = data.routes[0];
+        const steps = (r.legs[0]?.steps ?? []).map((s: any): NavStep => ({
+            instruction: osrmInstruction(s),
+            distance: s.distance ?? 0,
+            maneuver: s.maneuver?.type ?? 'straight',
+        }));
+        return {
+            origin: '',
+            destination: '',
+            originCoords: oCoords,
+            destinationCoords: dCoords,
+            mode: mode as NavigationRoute['mode'],
+            duration: r.duration,
+            distance: r.distance,
+            steps,
+            geometry: r.geometry,
+        };
+    } catch {
+        return null;
+    }
+}
 
 function fmtDuration(sec: number) {
     const h = Math.floor(sec / 3600);
@@ -137,7 +202,7 @@ export const NavigationMode: React.FC = () => {
     const [isCalculating, setIsCalculating] = useState(false);
     const [error, setError] = useState('');
 
-    const { navigationRoute, setNavigationRoute, setIsNavigating, mapInstance, toggleGlobeMode } = useMapStore();
+    const { navigationRoute, setNavigationRoute, setIsNavigating } = useMapStore();
 
     const canCalculate = !!(originPlace && destPlace) && !isCalculating;
 
@@ -148,14 +213,13 @@ export const NavigationMode: React.FC = () => {
         }
         setError('');
         setIsCalculating(true);
-        toggleGlobeMode(false);
 
         const oCoords = originPlace.coords;
         const dCoords = destPlace.coords;
         const token = import.meta.env.VITE_MAPBOX_TOKEN;
         let route: NavigationRoute | null = null;
 
-        // Try real Mapbox Directions API
+        // 1. Try Mapbox Directions API (if token available — highest quality)
         if (token) {
             try {
                 const profile = transportMode === 'driving' ? 'driving' : transportMode === 'cycling' ? 'cycling' : 'walking';
@@ -183,16 +247,20 @@ export const NavigationMode: React.FC = () => {
             } catch (_) {}
         }
 
-        // Fallback: straight-line mock
+        // 2. OSRM — free real-road routing via OpenStreetMap (no API key needed)
+        if (!route) {
+            const osrm = await fetchOSRMRoute(oCoords, dCoords, transportMode);
+            if (osrm) {
+                route = { ...osrm, origin: originPlace.name, destination: destPlace.name };
+            }
+        }
+
+        // 3. Last resort: straight-line approximation (no road data available)
         if (!route) {
             const dx = dCoords[0] - oCoords[0];
             const dy = dCoords[1] - oCoords[1];
             const distKm = Math.hypot(dx * 111 * Math.cos((oCoords[1] * Math.PI) / 180), dy * 111);
             const speedKph = transportMode === 'driving' ? 60 : transportMode === 'cycling' ? 20 : 5;
-            const coords = Array.from({ length: 21 }, (_, i) => [
-                oCoords[0] + (dx * i) / 20,
-                oCoords[1] + (dy * i) / 20,
-            ]);
             route = {
                 origin: originPlace.name,
                 destination: destPlace.name,
@@ -206,78 +274,21 @@ export const NavigationMode: React.FC = () => {
                     { instruction: 'Continue along the main route', distance: distKm * 400, maneuver: 'straight' },
                     { instruction: `Arrive at ${destPlace.name}`, distance: 0, maneuver: 'arrive' },
                 ],
-                geometry: { type: 'LineString', coordinates: coords },
+                geometry: {
+                    type: 'LineString',
+                    coordinates: Array.from({ length: 21 }, (_, i) => [
+                        oCoords[0] + (dx * i) / 20,
+                        oCoords[1] + (dy * i) / 20,
+                    ]),
+                },
             };
         }
 
-        // Draw route on map
-        if (mapInstance) {
-            const map = mapInstance;
-            map.fitBounds(
-                [
-                    [Math.min(oCoords[0], dCoords[0]) - 0.5, Math.min(oCoords[1], dCoords[1]) - 0.5],
-                    [Math.max(oCoords[0], dCoords[0]) + 0.5, Math.max(oCoords[1], dCoords[1]) + 0.5],
-                ],
-                { padding: { top: 80, bottom: 80, left: 320, right: 60 }, duration: 1800 }
-            );
-
-            const geojson = { type: 'Feature', properties: {}, geometry: route.geometry };
-            const src = map.getSource('nav-route') as any;
-            if (src) {
-                src.setData(geojson);
-            } else {
-                map.addSource('nav-route', { type: 'geojson', data: geojson as any });
-
-                // Glow effect (wide blurred line behind)
-                map.addLayer({
-                    id: 'nav-route-glow',
-                    type: 'line',
-                    source: 'nav-route',
-                    layout: { 'line-join': 'round', 'line-cap': 'round' },
-                    paint: { 'line-color': '#a78bfa', 'line-width': 18, 'line-opacity': 0.18, 'line-blur': 8 },
-                });
-
-                // Casing (outer stroke)
-                map.addLayer({
-                    id: 'nav-route-casing',
-                    type: 'line',
-                    source: 'nav-route',
-                    layout: { 'line-join': 'round', 'line-cap': 'round' },
-                    paint: { 'line-color': '#5b21b6', 'line-width': 8, 'line-opacity': 0.9 },
-                });
-
-                // Main route line
-                map.addLayer({
-                    id: 'nav-route-line',
-                    type: 'line',
-                    source: 'nav-route',
-                    layout: { 'line-join': 'round', 'line-cap': 'round' },
-                    paint: {
-                        'line-color': '#8b5cf6',
-                        'line-width': 5,
-                        'line-opacity': 1,
-                        'line-gradient': ['interpolate', ['linear'], ['line-progress'], 0, '#8b5cf6', 1, '#3b82f6'],
-                    } as any,
-                });
-            }
-
-            // Origin marker
-            new mapboxgl.Marker({ color: '#4ade80', scale: 0.9 })
-                .setLngLat(oCoords)
-                .setPopup(new mapboxgl.Popup({ offset: 25, className: 'dark-popup' }).setText(`🟢 ${route.origin}`))
-                .addTo(map);
-
-            // Destination marker
-            new mapboxgl.Marker({ color: '#f87171', scale: 0.9 })
-                .setLngLat(dCoords)
-                .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(`🔴 ${route.destination}`))
-                .addTo(map);
-        }
-
+        // Route geometry is drawn on the map by LeafletMap's RouteLayer
         setNavigationRoute(route);
         setIsNavigating(true);
         setIsCalculating(false);
-    }, [originPlace, destPlace, transportMode, mapInstance, toggleGlobeMode, setNavigationRoute, setIsNavigating]);
+    }, [originPlace, destPlace, transportMode, setNavigationRoute, setIsNavigating]);
 
     const handleClear = () => {
         setNavigationRoute(null);
@@ -287,12 +298,6 @@ export const NavigationMode: React.FC = () => {
         setOriginPlace(null);
         setDestPlace(null);
         setError('');
-        if (mapInstance) {
-            ['nav-route-line', 'nav-route-casing', 'nav-route-glow'].forEach((id) => {
-                if (mapInstance.getLayer(id)) mapInstance.removeLayer(id);
-            });
-            if (mapInstance.getSource('nav-route')) mapInstance.removeSource('nav-route');
-        }
     };
 
     const handleSwap = () => {
@@ -310,7 +315,7 @@ export const NavigationMode: React.FC = () => {
                 <div className="bg-gradient-to-r from-purple-700/80 to-blue-700/80 px-4 py-3 flex items-center gap-2">
                     <span className="text-xl">🚗</span>
                     <h2 className="text-white font-bold text-sm">Real Navigation</h2>
-                    <span className="ml-auto text-purple-200 text-xs">Mapbox Directions</span>
+                    <span className="ml-auto text-purple-200 text-xs">OSRM · Real Roads</span>
                 </div>
 
                 <div className="p-4 space-y-3">

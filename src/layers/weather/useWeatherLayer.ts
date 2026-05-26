@@ -1,3 +1,4 @@
+/* useWeatherLayer — Leaflet layer hook for the Weather overlay. Adds/removes markers when active=true/false. */
 import { useEffect, useRef } from 'react';
 import { WEATHER_GEOJSON } from './weatherData';
 import { addWhenReady, safeRemove, popupHTML, attachHoverPopup } from '../utils';

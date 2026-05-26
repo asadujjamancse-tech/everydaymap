@@ -1,3 +1,4 @@
+/* nightlifeData — Static GeoJSON data for the nightlife map overlay layer. */
 export const NIGHTLIFE_GEOJSON = {
     type: 'FeatureCollection' as const,
     features: [
